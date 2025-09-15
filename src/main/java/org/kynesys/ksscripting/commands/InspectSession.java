@@ -12,7 +12,7 @@ public class InspectSession implements KSScriptingExecutable {
 
     @Override
     public Object execute(Object[] args, KSExecutionSession session) throws Exception {
-        System.out.println("Last Result: " + session.getLastResult().toString());
+        System.out.println("Last Result: " + session.getLastResult());
         System.out.println();
         System.out.println("Current environment variables:");
         for (String key : session.getEnvironment().getEnvVar().keySet()) {
