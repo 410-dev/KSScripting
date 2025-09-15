@@ -11,9 +11,9 @@ import java.awt.event.*;
 import java.util.Locale;
 import java.util.Objects;
 
-public class EventBinder implements KSScriptingExecutable {
+public class EventBind implements KSScriptingExecutable {
 
-    public EventBinder() {}
+    public EventBind() {}
 
     // --------------------------
     // Public DSL-facing methods
@@ -140,7 +140,7 @@ public class EventBinder implements KSScriptingExecutable {
     @Override
     public Object execute(Object[] args, KSExecutionSession session) throws Exception {
         // Usage:
-        //   EventBinder {{object}} "mouse/keyboard" "event" {{codeblock}}
+        //   EventBind {{object}} "mouse/keyboard" "event" {{codeblock}}
         //
         // Events:
         //    `"down"` → `keyPressed`
@@ -187,11 +187,11 @@ public class EventBinder implements KSScriptingExecutable {
         if (args[1].equals("mouse")) {
             String[] avbl = new String[]{"click", "double-click", "down", "up", "enter", "exit", "move", "drag", "wheel"};
             chkAction(args, avbl);
-            EventBinder.addMouseEvent((Component) args[0], args[2].toString(), (Runnable) args[3]);
+            EventBind.addMouseEvent((Component) args[0], args[2].toString(), (Runnable) args[3]);
         } else {
             String[] avbl = new String[]{"down", "up", "type"};
             chkAction(args, avbl);
-            EventBinder.addKeyEvent((Component) args[0], args[2].toString(), (Runnable) args[3]);
+            EventBind.addKeyEvent((Component) args[0], args[2].toString(), (Runnable) args[3]);
         }
         return new KSScriptingNull();
     }
