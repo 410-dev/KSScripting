@@ -180,7 +180,7 @@ public class KSScriptingInterpreter {
                 return session.getTerminatingValue();
             }
             String line = lines[i];
-            System.out.println("// Executing line " + (i + 1) + ": \"" + line + "\"");
+//            System.out.println("// Executing line " + (i + 1) + ": \"" + line + "\"");
             if (line == null || line.isEmpty()) {
                 continue;
             }
@@ -202,6 +202,8 @@ public class KSScriptingInterpreter {
     }
 
     public static void main(String[] args) {
+
+
 //        String[] lines = {
 //                "Print {GetAsInteger64 123}",
 //                "StoreValue v1 = {GetAsInteger64 1}",
