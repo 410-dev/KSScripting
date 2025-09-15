@@ -9,6 +9,10 @@ import org.kynesys.lwks.KSStringController;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
+import java.io.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class KSScriptingInterpreter {
@@ -201,7 +205,45 @@ public class KSScriptingInterpreter {
         return executeLines(lines, session);
     }
 
-    public static void main(String[] args) {
+    public static String readFile(File f, boolean omitComment) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(f));
+        StringBuilder sb = new StringBuilder();
+        while (true) {
+            String l = br.readLine();
+            if (l == null) {
+                break;
+            }
+            if ((l.startsWith("#") || l.startsWith("//")) && omitComment) continue;
+            sb.append(l).append("\n");
+        }
+        return sb.toString();
+    }
+
+    private static void shellMode(KSExecutionSession session) {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String currentDirectory = System.getProperty("user.dir");
+            String currentUsername = System.getProperty("user.name");
+            String currentUserHome = System.getProperty("user.home");
+            String inputHeadFormat = session.getEnvironment().getEnvVar().getOrDefault("ShellInputHead", "{Username}@{CurrentDirectoryWithSimplifyIfHome} # ");
+            inputHeadFormat = inputHeadFormat.replace("{Username}", currentUsername);
+//                inputHeadFormat = inputHeadFormat.replace("{MachineName}", currentUserHome);
+            inputHeadFormat = inputHeadFormat.replace("{CurrentDirectoryWithSimplifyIfHome}", currentDirectory.equals(currentUserHome) ? "~" : currentDirectory);
+            inputHeadFormat = inputHeadFormat.replace("{CurrentDirectory}", currentDirectory);
+            System.out.print(inputHeadFormat);
+            try {
+                Object output = executeLine(scanner.nextLine(), session);
+                session.setLastResult(output);
+                if (session.getEnvironment().getEnvVar().getOrDefault("PrintResult", "").equals("1")) {
+                    System.out.println(output);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
 
 
 //        String[] lines = {
@@ -264,86 +306,77 @@ public class KSScriptingInterpreter {
 
         // Example of using the execute method
         KSExecutionSession session = new KSExecutionSession(new KSEnvironment());
-//        session.setComplexVariable("button", button);
-//        session.setComplexVariable("panel", panel);
-//        session.setComplexVariable("frame", frame);
-//        session.setComplexVariable("textField", textField);
-
-//        String[] script = {
-//                "Asynchronize SocketOpen 9090 {Iterable} "
-//        };
-
-//        String[] script = {
-//                "// Wait until the window is open",
-//                "Delay 1000",
-//                "",
-//                "// Enumerate all open windows",
-//                "StoreValue windowsOpen = {GCEnumerateOpenWindows frame}",
-//                "",
-//                "// Filter by title (contains KS)",
-//                "StoreValue windowsFiltered = {GCFilterWindowsByPattern {{windowsOpen}} javax.swing.JFrame getTitle contains KS}",
-//                "StoreValue targetWindow = {GetItemFromIterable {{windowsFiltered}} {Int 0}}",
-//                "StoreValue contentPane = {ObjectInvoke {{targetWindow}} getContentPane}",
-//                "",
-//                "// Find the text field in the content pane",
-//                "StoreValue textField = {GetItemFromIterable {GCFilterComponentsByPattern notraverse {{contentPane}} javax.swing.JTextField getText isAny _} {Int 0}}",
-//                "GCControlledInput {{textField}} mouseClick",
-//                "GCControlledInput {{textField}} keyboard 0 Hello World",
-////                "Delay 2",
-//                "",
-//                "// Find the button in the content pane",
-//                "StoreValue button = {GetItemFromIterable {WaitUntilDetected {Int 1} {Int 1} GCFilterComponentsByPattern notraverse {{contentPane}} javax.swing.JButton getText contains Click} {Int 0}}",
-//                "GCControlledInput {{button}} mouseClick",
-////                "Delay 80",
-//                "",
-//                "// Find open JOptionPanes",
-//                "StoreValue filtered = {WaitUntilDetected {Int 1} {Int 1} GCFilterWindowsByPattern {GCEnumerateOpenWindows dialog} javax.swing.JDialog getTitle contains Message}",
-//                "StoreValue targetPopup = {GetItemFromIterable {{filtered}} {Int 0}}",
-//                "StoreValue popupContentPane = {ObjectInvoke {{targetPopup}} getContentPane}",
-//                "StoreValue filtered = {GCFilterComponentsByPattern traverse {{popupContentPane}} javax.swing.JButton getText isAny _}",
-//                "StoreValue buttonComponent = {GetItemFromIterable {{filtered}} {Int 0}}",
-//                "",
-//                "// Click the button in the popup",
-//                "GCControlledInput {{buttonComponent}} mouseClick",
-//                "",
-//                "// Try opening new popup",
-//                "StoreValue userOutput = {GCPopupAlert \"Title goes here\" \"This is a test popup\" info \"Fuck You\" \"Nothing\"}",
-//                "Print User pressed: {{userOutput}}",
-//        };
-
-//        String[] script = {
-//                "StoreValue map = {Map , hello world}",
-//                "Print {{map}}",
-//                "StoreValue map2 = {AddItemToMap {{map}} test void}",
-//                "Print {{map}}",
-//                "Print {{map2}}"
-//        };
-//        executeLines(script, session);
 
         if (args.length == 0) {
-            Scanner scanner = new Scanner(System.in);
-            while (true) {
-                String currentDirectory = System.getProperty("user.dir");
-                String currentUsername = System.getProperty("user.name");
-                String currentUserHome = System.getProperty("user.home");
-                String inputHeadFormat = session.getEnvironment().getEnvVar().getOrDefault("ShellInputHead", "{Username}@{CurrentDirectoryWithSimplifyIfHome} # ");
-                inputHeadFormat = inputHeadFormat.replace("{Username}", currentUsername);
-//                inputHeadFormat = inputHeadFormat.replace("{MachineName}", currentUserHome);
-                inputHeadFormat = inputHeadFormat.replace("{CurrentDirectoryWithSimplifyIfHome}", currentDirectory.equals(currentUserHome) ? "~" : currentDirectory);
-                inputHeadFormat = inputHeadFormat.replace("{CurrentDirectory}", currentDirectory);
-                System.out.print(inputHeadFormat);
-                try {
-                    Object output = executeLine(scanner.nextLine(), session);
-                    session.setLastResult(output);
-                    if (session.getEnvironment().getEnvVar().getOrDefault("PrintResult", "").equals("1")) {
-                        System.out.println(output);
+            shellMode(session);
+        } else if (args[0].equals("-ScriptMode")) {
+            // Expecting such format
+            //   java -jar xxx.jar -ScriptMode script.kss -Env env1.env env2.env env3.env ...
+            //   java -jar xxx.jar -ScriptMode script.kss -LineEnv key=val key=val key=val ...
+            //   java -jar xxx.jar -ScriptMode script.kss
+
+            if (args.length < 2) {
+                System.out.println("Error: Expected script name as second parameter.");
+                System.exit(0);
+            }
+            if (args.length > 2) {
+                // Load environment files / values
+                ArrayList<String> envSet = new ArrayList<>();
+                if (args[2].equals("-Env")) {
+                    for (int i = 3; i < args.length; i++) {
+                        File f = new File(args[i]);
+                        if (!f.isFile()) {
+                            throw new FileNotFoundException("Specified environment file " + f.getName() + " not found.");
+                        }
+                        String[] content = readFile(f, true).split("\n");
+                        envSet.addAll(Arrays.asList(content));
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } else if (args[2].equals("-LineEnv")) {
+                    envSet.addAll(Arrays.asList(args).subList(3, args.length));
+                }
+                for (String env : envSet) {
+                    env = env.trim();
+                    String[] comp = env.split("=");
+                    String key = comp[0];
+                    StringBuilder value = new StringBuilder();
+                    if (comp.length >= 2) {
+                        for (int i = 1; i < comp.length; i++) {
+                            value.append(comp[i]);
+                        }
+                    }
+                    session.getEnvironment().getEnvVar().put(key, value.toString());
                 }
             }
+
+            // Load script
+            File f = new File(args[1]);
+            String[] lines = readFile(f, false).split("\n");
+
+            // Run line
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+
+                // Omit comment
+                if (line.trim().isEmpty() || line.trim().startsWith("#") || line.trim().startsWith("//")) continue;
+
+                // If shell mode, enter shell mode
+                if (line.trim().equals("ShellMode")) {
+                    shellMode(session);
+                    continue;
+                }
+
+                try {
+                    executeLine(line, session);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("Interpreter Error: Failed executing line " + (i + 1) + ": " + line);
+                    break;
+                }
+            }
+
         } else {
             execute(args, session);
         }
+
     }
 }
