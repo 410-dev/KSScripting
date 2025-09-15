@@ -31,50 +31,50 @@ public class Math implements KSScriptingExecutable {
         Number result = null;
         switch (operation) {
             case "add": {
-                result = 0;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = add(result, args[i], precisionRank);
                 }
                 break;
             }
             case "subtract": {
-                result = 0;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = subtract(result, args[i], precisionRank);
                 }
                 break;
             }
             case "multiply": {
-                result = 1;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = multiply(result, args[i], precisionRank);
                 }
                 break;
             }
             case "divide": {
-                result = 1;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = divide(result, args[i], precisionRank);
                 }
                 break;
             }
             case "mod": {
-                result = 1;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = mod(result, args[i], precisionRank);
                 }
                 break;
             }
             case "pow": {
-                result = 1;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = pow(result, args[i], precisionRank);
                 }
                 break;
             }
             case "sqrt": {
-                result = 1;
-                for (int i = 1; i < args.length; i++) {
+                result = (Number) args[1];
+                for (int i = 2; i < args.length; i++) {
                     result = sqrt(result, args[i], precisionRank);
                 }
                 break;
