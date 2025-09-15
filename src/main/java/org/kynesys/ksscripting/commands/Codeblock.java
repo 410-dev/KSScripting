@@ -2,8 +2,12 @@ package org.kynesys.ksscripting.commands;
 
 import lombok.Getter;
 import org.kynesys.ksscripting.objects.CodeBlockObject;
+import org.kynesys.ksscripting.objects.KSScriptingNull;
 import org.kynesys.lwks.KSExecutionSession;
 import org.kynesys.lwks.KSScriptingExecutable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public class Codeblock implements KSScriptingExecutable {
@@ -22,7 +26,7 @@ public class Codeblock implements KSScriptingExecutable {
         //   Codeblock <name> <action> <?code?>
         //   actions: "make", "add", "run"
         if (args == null || args.length < 2) {
-            throw new RuntimeException("Codeblock requires at least 2 arguments: <name> <action|make, add, run> <code:optional>");
+            throw new RuntimeException("Codeblock requires at least 2 arguments: <name> <action|make, add, run, delete> <code:optional>");
         }
 
         String name = (String) args[0];
@@ -38,6 +42,21 @@ public class Codeblock implements KSScriptingExecutable {
                 codeBlock = new CodeBlockObject(name);
                 session.setComplexVariable(CodeBlockObject.class.getCanonicalName() + ":__BLOCKINSTANCE__:" + name, codeBlock);
                 return codeBlock;
+            }
+            case "delete" -> {
+                // Remove codeblock
+                session.getComplexVariables().remove(CodeBlockObject.class.getCanonicalName() + ":__BLOCKINSTANCE__:" + name);
+                return new KSScriptingNull();
+            }
+            case "list" -> {
+                // This is intentionally hidden from manual as it is returning non-codeblock object
+                List<String> list = new ArrayList<>();
+                for (Object s : session.getComplexVariables().keySet()) {
+                    if (s.toString().startsWith(CodeBlockObject.class.getCanonicalName() + ":__BLOCKINSTANCE__:")) {
+                        list.add(s.toString().replace(CodeBlockObject.class.getCanonicalName() + ":__BLOCKINSTANCE__:", ""));
+                    }
+                }
+                return list;
             }
             case "add" -> {
                 // Add code to the code block
@@ -65,7 +84,14 @@ public class Codeblock implements KSScriptingExecutable {
                 // Run the code block
                 return codeBlock.run(session);
             }
-            default -> throw new RuntimeException("Codeblock action must be one of: make, add, run");
+            case "setSession" -> {
+                codeBlock.setSession(session);
+                return codeBlock;
+            }
+            case "get" -> {
+                return codeBlock;
+            }
+            default -> throw new RuntimeException("Codeblock action must be one of: make, add, run, setSession");
         }
     }
 }

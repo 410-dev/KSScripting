@@ -2,15 +2,17 @@ package org.kynesys.ksscripting.objects;
 
 import lombok.Getter;
 
+import lombok.Setter;
 import org.kynesys.ksscripting.KSScriptingInterpreter;
 import org.kynesys.lwks.KSExecutionSession;
 
 import java.util.ArrayList;
 
 @Getter
-public class CodeBlockObject {
+public class CodeBlockObject implements Runnable {
 
     private final String name;
+    @Setter private KSExecutionSession session;
     private final ArrayList<String> line;
 
     public CodeBlockObject(String name) {
@@ -31,5 +33,10 @@ public class CodeBlockObject {
         } catch (Exception e) {
             throw new RuntimeException("Error executing code block: " + name, e);
         }
+    }
+
+    @Override
+    public void run() {
+        run(session);
     }
 }
