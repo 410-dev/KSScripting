@@ -4,6 +4,7 @@ import org.kynesys.lwks.KSExecutionSession;
 import org.kynesys.lwks.KSScriptingExecutable;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public class ObjectInvoke implements KSScriptingExecutable {
 
         Method method = findCompatibleMethod(target.getClass(), methodName, methodArgs);
         if (method == null) {
-            throw new RuntimeException("No compatible method found for " + methodName + " in " + target.getClass().getName());
+            throw new RuntimeException("No compatible method found for " + methodName + " in " + target.getClass().getName() + " (Got " + Arrays.toString(Arrays.stream(methodArgs).toArray()) + ")");
         }
 
         try {
