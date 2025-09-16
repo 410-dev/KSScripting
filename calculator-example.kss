@@ -1,0 +1,79 @@
+# My test calculator in GUI
+
+# Main window
+StoreValue frame = {NewObject javax.swing.JFrame}
+
+# Preferred component size
+StoreValue windowWidth = {Int 800}
+StoreValue windowHeight = {Int 600}
+StoreValue textFieldHeight = {Int 50}
+
+# Input Fields
+StoreValue valueField1 = {NewObject javax.swing.JTextField 0}
+StoreValue valueField2 = {NewObject javax.swing.JTextField 0}
+
+# Label field
+StoreValue labelField = {NewObject javax.swing.JLabel "Test"}
+
+# Buttons
+StoreValue addButton = {NewObject javax.swing.JButton "Add"}
+StoreValue subButton = {NewObject javax.swing.JButton "Subtract"}
+StoreValue mulButton = {NewObject javax.swing.JButton "Multiply"}
+StoreValue divButton = {NewObject javax.swing.JButton "Divide"}
+
+# Setup main window
+ObjectInvoke {{frame}} setLayout {Null}
+ObjectInvoke {{frame}} setSize {{windowWidth}} {{windowHeight}}
+
+# Set compute units
+Codeblock addUnit make
+Codeblock subUnit make
+Codeblock mulUnit make
+Codeblock divUnit make
+
+Codeblock addUnit add ObjectInvoke {{labelField}} setText {GetAsString {Math add {Int {ObjectInvoke {{valueField1}} getText}} {Int {ObjectInvoke {{valueField2}} getText}}}}
+Codeblock subUnit add ObjectInvoke {{labelField}} setText {GetAsString {Math subtract {Int {ObjectInvoke {{valueField1}} getText}} {Int {ObjectInvoke {{valueField2}} getText}}}}
+Codeblock mulUnit add ObjectInvoke {{labelField}} setText {GetAsString {Math multiply {Int {ObjectInvoke {{valueField1}} getText}} {Int {ObjectInvoke {{valueField2}} getText}}}}
+Codeblock divUnit add ObjectInvoke {{labelField}} setText {GetAsString {Math divide {Int {ObjectInvoke {{valueField1}} getText}} {Int {ObjectInvoke {{valueField2}} getText}}}}
+
+# Link compute units to buttons
+Codeblock addUnit setSession
+Codeblock subUnit setSession
+Codeblock mulUnit setSession
+Codeblock divUnit setSession
+EventBind {{addButton}} mouse click {Codeblock addUnit get}
+EventBind {{subButton}} mouse click {Codeblock subUnit get}
+EventBind {{mulButton}} mouse click {Codeblock mulUnit get}
+EventBind {{divButton}} mouse click {Codeblock divUnit get}
+
+# Set textfield bounds
+ObjectInvoke {{valueField1}} setBounds {Int 0} {Int 0} {Math divide {{windowWidth}} {Int 2}} {{textFieldHeight}}
+ObjectInvoke {{valueField2}} setBounds {Int 0} {{textFieldHeight}} {Math divide {{windowWidth}} {Int 2}} {{textFieldHeight}}
+
+# Set answer bounds
+ObjectInvoke {{labelField}} setBounds {Math divide {{windowWidth}} {Int 2}} {Int 0} {Math divide {{windowWidth}} {Int 2}} {Math multiply {{textFieldHeight}} {Int 2}}
+
+# Calculate button bounds
+StoreValue buttonStartY = {Math add {{textFieldHeight}} {ObjectInvoke {{valueField2}} getY}}
+StoreValue buttonMiddleX = {Math divide {{windowWidth}} {Int 2}}
+StoreValue buttonWidth = {{buttonMiddleX}}
+StoreValue buttonHeight = {Math divide {Math subtract {{windowHeight}} {Math multiply {{textFieldHeight}} {Int 2}}} {Int 2}}
+StoreValue buttonMiddleY = {Math add {{buttonStartY}} {{buttonHeight}}}
+ObjectInvoke {{addButton}} setBounds {Int 0} {{buttonStartY}} {{buttonWidth}} {{buttonHeight}}
+ObjectInvoke {{subButton}} setBounds {{buttonMiddleX}} {{buttonStartY}} {{buttonWidth}} {{buttonHeight}}
+ObjectInvoke {{mulButton}} setBounds {Int 0} {{buttonMiddleY}} {{buttonWidth}} {{buttonHeight}}
+ObjectInvoke {{divButton}} setBounds {{buttonMiddleX}} {{buttonMiddleY}} {{buttonWidth}} {{buttonHeight}}
+
+
+# Build UI
+ObjectInvoke {{frame}} add {{valueField1}}
+ObjectInvoke {{frame}} add {{valueField2}}
+ObjectInvoke {{frame}} add {{labelField}}
+ObjectInvoke {{frame}} add {{addButton}}
+ObjectInvoke {{frame}} add {{subButton}}
+ObjectInvoke {{frame}} add {{mulButton}}
+ObjectInvoke {{frame}} add {{divButton}}
+
+# Show UI
+ObjectInvoke {{frame}} repaint
+ObjectInvoke {{frame}} setVisible {Bool true}
